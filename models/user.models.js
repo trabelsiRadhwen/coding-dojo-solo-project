@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
-const {OrderSchema} = require('../models/order.model')
+const OrderSchema = require('../models/order.model').OrderSchema
 
 const UserSchema = new mongoose.Schema ({
     firstName: {
@@ -41,7 +41,7 @@ const UserSchema = new mongoose.Schema ({
         type: String,
         required: [true, "{PATH} is required"]
     }, 
-    orders: [OrderSchema]
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
 
 }, {timestamps: true})
 

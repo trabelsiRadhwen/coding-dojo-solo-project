@@ -2,6 +2,7 @@ const User = require('../models/user.models')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const {Order} = require('../models/order.model')
+const { default: mongoose } = require('mongoose')
 
 module.exports.register = (req, res) => {
     User.create(req.body)
@@ -43,6 +44,57 @@ module.exports.login = async(req, res) => {
             httpOnly: true
         })
         .json({ msg: "success!" });
+}
+
+
+module.exports.findOneUser = async (req, res) => {
+    try {
+        const token = req.cookies.usertoken;
+        const decoded = jwt.verify(token, process.env.FIRST_SECRET_KEY);
+        const userId = decoded.id;
+
+        console.log("User ID = ", userId);
+
+        const user = await User.findOne({ _id: userId});
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ user });
+    } catch (error) {
+        console.error('Error finding user:', error);
+        res.status(500).json({ error: 'Failed to find user.' });
+    }
+}
+
+
+module.exports.updateUser = async (req, res) => {
+    try {
+        const token = req.cookies.usertoken;
+        const decoded = jwt.verify(token, process.env.FIRST_SECRET_KEY);
+        const userId = decoded.id;
+
+        // Extract updated user data from request body
+        const { firstName, lastName, address, city, state } = req.body;
+
+        // Construct update object with provided fields
+        const updateFields = { firstName, lastName, address, city, state };
+        console.log(updateFields);
+
+        // Find and update user by userId
+        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true });
+        console.log(updatedUser);
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ updatedUser });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user.' });
+    }
 }
 
 module.exports.logout = (req, res) => {
